@@ -6,10 +6,19 @@ private const val MONTER = "up"
 
 class SousMarin(private val instructionsInput: List<String>) {
     private var coordonnées = Coordonnées(0, 0)
+    private var visée = 0
 
     fun activerAutoPilote() {
         coordonnées = lireInstructions()
             .fold(coordonnées) { mouvement, instruction -> mouvement + instruction.enCoordonnées() }
+    }
+
+    fun activerAutoPiloteAvecCorrection() {
+        lireInstructionsCorrigées().forEach(::suivreInstructions)
+    }
+
+    fun localisation(): Coordonnées {
+        return coordonnées
     }
 
     private fun lireInstructions(): List<Instruction> {
@@ -20,8 +29,20 @@ class SousMarin(private val instructionsInput: List<String>) {
         return Instruction(instructionBrute)
     }
 
-    fun localisation(): Coordonnées {
-        return coordonnées
+    private fun lireInstructionsCorrigées(): List<InstructionCorrigée> {
+        return instructionsInput.map { lireInstructionCorrigée(it) }
+    }
+
+    private fun suivreInstructions(instruction: InstructionCorrigée) {
+        when (instruction.commande) {
+            AVANCER -> coordonnées += Coordonnées(instruction.valeur, instruction.valeur * visée)
+            PLONGER -> visée += instruction.valeur
+            MONTER -> visée -= instruction.valeur
+        }
+    }
+
+    private fun lireInstructionCorrigée(instructionBrute: String): InstructionCorrigée {
+        return InstructionCorrigée(instructionBrute)
     }
 
     class Instruction(instructionBrute: String) {
@@ -36,5 +57,10 @@ class SousMarin(private val instructionsInput: List<String>) {
                 else -> Coordonnées(0, 0)
             }
         }
+    }
+
+    class InstructionCorrigée(instructionBrute: String) {
+        val commande = instructionBrute.split(" ")[0]
+        val valeur = instructionBrute.split(" ")[1].toInt()
     }
 }
